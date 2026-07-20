@@ -1,5 +1,5 @@
 import math
-from compas.datastructures import Mesh
+import compas
 import trimesh
 
 
@@ -36,7 +36,7 @@ for i in range(resolution - 1):
         faces.append([a, d, c])
 
 
-mesh = Mesh.from_vertices_and_faces(
+mesh = compas.datastructures.Mesh.from_vertices_and_faces(
     vertices,
     faces
 )

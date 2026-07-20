@@ -1,0 +1,14 @@
+{
+  "polylines": [
+    {
+      "id": "buildable",
+      "label": "Buildable",
+      "url": "polylines/buildable.json"
+    },
+    {
+      "id": "siteBoundary",
+      "label": "Site Boundary",
+      "url": "polylines/siteBoundary.json"
+    }
+  ]
+}

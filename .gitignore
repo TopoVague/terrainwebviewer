@@ -1,1 +1,7 @@
 node_modules
+
+# swissBUILDINGS3D source exports are large (tens of MB each) and reproducible from swisstopo
+SwissBuildings3_*.geojson
+
+__pycache__/
+*.pyc

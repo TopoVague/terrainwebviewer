@@ -1,0 +1,34 @@
+{
+  "scenarios": [
+    {
+      "id": "best_apartment_mix",
+      "label": "Best Apartment Mix",
+      "modifiedTerrain": "scenarios/best_apartment_mix-modifiedTerrain.glb",
+      "buildings": "scenarios/best_apartment_mix-buildings.glb"
+    },
+    {
+      "id": "best_apartment_size",
+      "label": "Best Apartment Size",
+      "modifiedTerrain": "scenarios/best_apartment_size-modifiedTerrain.glb",
+      "buildings": "scenarios/best_apartment_size-buildings.glb"
+    },
+    {
+      "id": "best_noise",
+      "label": "Best Noise",
+      "modifiedTerrain": "scenarios/best_noise-modifiedTerrain.glb",
+      "buildings": "scenarios/best_noise-buildings.glb"
+    },
+    {
+      "id": "best_revenues",
+      "label": "Best Revenues",
+      "modifiedTerrain": "scenarios/best_revenues-modifiedTerrain.glb",
+      "buildings": "scenarios/best_revenues-buildings.glb"
+    },
+    {
+      "id": "best_terrain",
+      "label": "Best Terrain",
+      "modifiedTerrain": "scenarios/best_terrain-modifiedTerrain.glb",
+      "buildings": "scenarios/best_terrain-buildings.glb"
+    }
+  ]
+}
