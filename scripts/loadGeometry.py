@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Load a CSV file of XYZ points and export a terrain mesh as GLB."""
+"""Load a CSV file of XYZ points and export a terrain mesh as GLB.
+   Load a JSON file of building footprints and extrude them into a mesh as GLB.
+
+
+"""
 
 import argparse
 import csv
 import json
 import re
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -35,11 +40,21 @@ def parse_args() -> argparse.Namespace:
         "still take precedence over what's auto-discovered.",
     )
     parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        help="Directory to write all generated output into: GLBs, scenarios.json, polylines.json, "
+        "and a self-contained copy of the viewer itself (index.html + rabbitViewer.js), so the "
+        "folder can be dropped anywhere (e.g. next to a project report) and referenced by a relative "
+        "iframe. Defaults to the repo root. Individual --*-output/--*-manifest flags still "
+        "override their own path.",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         type=Path,
         default=None,
-        help="Path to the original terrain GLB file (defaults to rabbitWeb/originalTerrain.glb)",
+        help="Path to the original terrain GLB file (defaults to originalTerrain.glb in the repo root)",
     )
     parser.add_argument(
         "--modified-csv",
@@ -51,7 +66,7 @@ def parse_args() -> argparse.Namespace:
         "--modified-output",
         type=Path,
         default=None,
-        help="Path to the modified terrain GLB file (defaults to rabbitWeb/modifiedTerrain.glb)",
+        help="Path to the modified terrain GLB file (defaults to modifiedTerrain.glb in the repo root)",
     )
     parser.add_argument(
         "--building-json",
@@ -63,7 +78,7 @@ def parse_args() -> argparse.Namespace:
         "--buildings-output",
         type=Path,
         default=None,
-        help="Path to the buildings GLB file (defaults to rabbitWeb/buildings.glb)",
+        help="Path to the buildings GLB file (defaults to buildings.glb in the repo root)",
     )
     parser.add_argument(
         "--neighborhood-geojson",
@@ -75,7 +90,7 @@ def parse_args() -> argparse.Namespace:
         "--neighborhood-output",
         type=Path,
         default=None,
-        help="Path to the neighborhood GLB file (defaults to rabbitWeb/neighborhood.glb)",
+        help="Path to the neighborhood GLB file (defaults to neighborhood.glb in the repo root)",
     )
     parser.add_argument(
         "--swiss-buildings-geojson",
@@ -104,8 +119,8 @@ def parse_args() -> argparse.Namespace:
         "--swiss-buildings-output",
         type=Path,
         default=None,
-        help="Path to the swiss buildings GLB file (defaults to rabbitWeb/neighborhood.glb, which is "
-        "what the viewer actually loads for the Neighborhood layer)",
+        help="Path to the swiss buildings GLB file (defaults to neighborhood.glb in the repo root, "
+        "which is what the viewer actually loads for the Neighborhood layer)",
     )
     parser.add_argument(
         "--origin",
@@ -127,20 +142,20 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Add a design scenario (repeat this flag once per scenario): a name, its modified-terrain "
         "XYZ CSV, and its placed-buildings JSON. Each scenario gets its own GLB pair under "
-        "rabbitWeb/scenarios/, and a rabbitWeb/scenarios.json manifest is written for the viewer's "
+        "scenarios/, and a scenarios.json manifest is written (in the repo root) for the viewer's "
         "tabbed UI. The shared original terrain and neighborhood are unaffected by this.",
     )
     parser.add_argument(
         "--scenarios-output-dir",
         type=Path,
         default=None,
-        help="Directory for per-scenario GLBs (defaults to rabbitWeb/scenarios)",
+        help="Directory for per-scenario GLBs (defaults to scenarios/ in the repo root)",
     )
     parser.add_argument(
         "--scenarios-manifest",
         type=Path,
         default=None,
-        help="Path to the scenarios manifest JSON (defaults to rabbitWeb/scenarios.json)",
+        help="Path to the scenarios manifest JSON (defaults to scenarios.json in the repo root)",
     )
     parser.add_argument(
         "--polyline",
@@ -150,20 +165,20 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Add a polyline overlay (repeat this flag once per polyline): a name and its XYZ CSV "
         "(e.g. a site boundary or buildable envelope). Rendered as a closed loop. Each one is "
-        "offset by --origin and exported to rabbitWeb/polylines/<name>.json, listed in "
-        "rabbitWeb/polylines.json for the viewer.",
+        "offset by --origin and exported to polylines/<name>.json, listed in "
+        "polylines.json (both in the repo root) for the viewer.",
     )
     parser.add_argument(
         "--polylines-output-dir",
         type=Path,
         default=None,
-        help="Directory for per-polyline JSON files (defaults to rabbitWeb/polylines)",
+        help="Directory for per-polyline JSON files (defaults to polylines/ in the repo root)",
     )
     parser.add_argument(
         "--polylines-manifest",
         type=Path,
         default=None,
-        help="Path to the polylines manifest JSON (defaults to rabbitWeb/polylines.json)",
+        help="Path to the polylines manifest JSON (defaults to polylines.json in the repo root)",
     )
     return parser.parse_args()
 
@@ -652,6 +667,8 @@ def main() -> None:
     site_dir = args.site_dir.expanduser().resolve() if args.site_dir is not None else None
     discovered = discover_site_files(site_dir) if site_dir is not None else None
 
+    out_dir = args.out_dir.expanduser().resolve() if args.out_dir is not None else repo_root
+
     if args.csv_path is not None:
         csv_path = Path(args.csv_path).expanduser().resolve()
     elif discovered is not None and discovered["original_terrain"] is not None:
@@ -662,27 +679,27 @@ def main() -> None:
     terrain_output_path = (
         args.output.expanduser().resolve()
         if args.output is not None
-        else repo_root / "rabbitWeb" / "originalTerrain.glb"
+        else out_dir / "originalTerrain.glb"
     )
     modified_terrain_output_path = (
         args.modified_output.expanduser().resolve()
         if args.modified_output is not None
-        else repo_root / "rabbitWeb" / "modifiedTerrain.glb"
+        else out_dir / "modifiedTerrain.glb"
     )
     buildings_output_path = (
         args.buildings_output.expanduser().resolve()
         if args.buildings_output is not None
-        else repo_root / "rabbitWeb" / "buildings.glb"
+        else out_dir / "buildings.glb"
     )
     neighborhood_output_path = (
         args.neighborhood_output.expanduser().resolve()
         if args.neighborhood_output is not None
-        else repo_root / "rabbitWeb" / "neighborhood.glb"
+        else out_dir / "neighborhood.glb"
     )
     swiss_buildings_output_path = (
         args.swiss_buildings_output.expanduser().resolve()
         if args.swiss_buildings_output is not None
-        else repo_root / "rabbitWeb" / "neighborhood.glb"
+        else out_dir / "neighborhood.glb"
     )
 
     if not csv_path.exists():
@@ -780,17 +797,17 @@ def main() -> None:
     scenarios_output_dir = (
         args.scenarios_output_dir.expanduser().resolve()
         if args.scenarios_output_dir is not None
-        else repo_root / "rabbitWeb" / "scenarios"
+        else out_dir / "scenarios"
     )
     scenarios_manifest_path = (
         args.scenarios_manifest.expanduser().resolve()
         if args.scenarios_manifest is not None
-        else repo_root / "rabbitWeb" / "scenarios.json"
+        else out_dir / "scenarios.json"
     )
 
     def relative_to_rabbitweb(path: Path) -> str:
         try:
-            return str(path.relative_to(repo_root / "rabbitWeb")).replace("\\", "/")
+            return str(path.relative_to(out_dir)).replace("\\", "/")
         except ValueError:
             return str(path)
 
@@ -854,12 +871,12 @@ def main() -> None:
     polylines_output_dir = (
         args.polylines_output_dir.expanduser().resolve()
         if args.polylines_output_dir is not None
-        else repo_root / "rabbitWeb" / "polylines"
+        else out_dir / "polylines"
     )
     polylines_manifest_path = (
         args.polylines_manifest.expanduser().resolve()
         if args.polylines_manifest is not None
-        else repo_root / "rabbitWeb" / "polylines.json"
+        else out_dir / "polylines.json"
     )
 
     polyline_specs: list[tuple[str, Path]] = list(discovered["polylines"]) if discovered is not None else []
@@ -943,6 +960,15 @@ def main() -> None:
     if modified_terrain_mesh is not None:
         total_triangles += len(modified_terrain_mesh.faces)
     print(f"Triangles: {total_triangles}")
+
+    viewer_source_dir = repo_root
+    if out_dir != viewer_source_dir:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for filename in ("index.html", "rabbitViewer.js"):
+            src = viewer_source_dir / filename
+            if src.exists():
+                shutil.copy2(src, out_dir / filename)
+        print(f"Copied viewer (index.html, rabbitViewer.js) to {out_dir}")
 
 
 if __name__ == "__main__":

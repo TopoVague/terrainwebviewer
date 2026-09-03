@@ -13,7 +13,7 @@ from scipy.spatial import Delaunay
 
 def parse_args() -> argparse.Namespace:
     repo_root = Path(__file__).resolve().parent.parent
-    default_output = repo_root / "rabbitWeb" / "terrain.glb"
+    default_output = repo_root / "terrain.glb"
 
     parser = argparse.ArgumentParser(description="Create a terrain mesh from XYZ CSV data")
     parser.add_argument("csv_path", help="Path to the input CSV file")
@@ -22,7 +22,7 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="Path to the output GLB file (defaults to rabbitWeb/<csv-stem>.glb)",
+        help="Path to the output GLB file (defaults to <csv-stem>.glb in the repo root)",
     )
     parser.add_argument(
         "--building-json",
@@ -161,7 +161,7 @@ def main() -> None:
 
     repo_root = Path(__file__).resolve().parent.parent
     if output_path is None:
-        output_path = repo_root / "rabbitWeb" / f"{csv_path.stem}.glb"
+        output_path = repo_root / f"{csv_path.stem}.glb"
 
     points = read_xyz_points(csv_path)
     terrain_mesh = build_mesh(points)

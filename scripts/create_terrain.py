@@ -48,6 +48,6 @@ tm = trimesh.Trimesh(
     faces=faces
 )
 
-tm.export("../rabbitWeb/terrain.glb")
+tm.export("../terrain.glb")
 
 print("Terrain exported")

@@ -348,7 +348,6 @@ async function loadPolylinesManifest() {
 
 const geometryRoots = [];
 
-
 function createContourMaterial(baseColor, contourColor, intervalMeters) {
     const material = new THREE.MeshStandardMaterial({
         color: baseColor,

@@ -1,12 +1,29 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RARE Topo</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rabbit Terrain Viewer with Compas</title>
+
+    <style>
+        body {
+            margin:0;
+            overflow:hidden;
+        }
+    </style>
+
+        <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160/examples/jsm/"
+        }
+    }
+    </script>
+
+</head>
+
+<body>
+
+<script type="module" src="rabbitViewer.js"></script>
+
+</body>
 </html>
